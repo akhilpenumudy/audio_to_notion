@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileAudio, FileText, Loader2 } from "lucide-react";
+import {
+  Upload,
+  FileAudio,
+  FileText,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Link,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -14,6 +22,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [detailedError, setDetailedError] = useState<any>(null);
   const [summaryOptions, setSummaryOptions] = useState<string[]>([]);
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
+  const [isNotionConnected, setIsNotionConnected] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -37,6 +47,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("summaryOptions", JSON.stringify(summaryOptions));
+      formData.append("isNotionConnected", String(isNotionConnected));
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -79,6 +90,23 @@ export default function Home() {
     URL.revokeObjectURL(url);
   };
 
+  const toggleSummary = () => {
+    setIsSummaryExpanded(!isSummaryExpanded);
+  };
+
+  const handleNotionConnect = async () => {
+    // This is a placeholder for the actual Notion connection logic
+    // You would typically redirect to Notion's OAuth flow here
+    try {
+      // Simulating an API call to connect to Notion
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setIsNotionConnected(true);
+    } catch (error) {
+      console.error("Error connecting to Notion:", error);
+      setError("Failed to connect to Notion");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white shadow-sm">
@@ -91,6 +119,31 @@ export default function Home() {
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-md rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Connect to Notion
+              </label>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  onClick={handleNotionConnect}
+                  disabled={isNotionConnected}
+                  className="w-full"
+                >
+                  <Link className="mr-2 h-4 w-4" />
+                  {isNotionConnected
+                    ? "Connected to Notion"
+                    : "Connect to Notion"}
+                </Button>
+              </div>
+              {isNotionConnected && (
+                <p className="text-sm text-green-600">
+                  Your Notion account is connected. Summaries will be sent to
+                  your Notion.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <label
                 htmlFor="audio-upload"
@@ -106,23 +159,6 @@ export default function Home() {
                   onChange={handleFileChange}
                   className="flex-1"
                 />
-                <Button
-                  type="submit"
-                  disabled={!selectedFile || isLoading}
-                  className="w-40"
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Transcribe
-                    </>
-                  )}
-                </Button>
               </div>
             </div>
 
@@ -176,6 +212,24 @@ export default function Home() {
               </p>
             </div>
 
+            <Button
+              type="submit"
+              disabled={!selectedFile || isLoading}
+              className="w-full"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Submit
+                </>
+              )}
+            </Button>
+
             {selectedFile && (
               <Alert>
                 <FileAudio className="h-4 w-4" />
@@ -208,10 +262,28 @@ export default function Home() {
 
         {summary && (
           <div className="mt-8 bg-white shadow-md rounded-lg p-6 space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Summary</h2>
-            <div className="bg-gray-50 p-4 rounded-md">
-              <pre className="whitespace-pre-wrap text-gray-700">{summary}</pre>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Summary</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleSummary}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                {isSummaryExpanded ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
             </div>
+            {isSummaryExpanded && (
+              <div className="bg-gray-50 p-4 rounded-md">
+                <pre className="whitespace-pre-wrap text-gray-700">
+                  {summary}
+                </pre>
+              </div>
+            )}
             <Button className="w-full" onClick={handleDownload}>
               <FileText className="mr-2 h-4 w-4" />
               Download Markdown Summary

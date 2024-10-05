@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     if (summaryOptions.length === 0) {
       prompt += "Only generate a title for the note.";
     } else {
-      prompt += "Include the following sections:\n";
+      prompt += "The output should ONLY include the following sections.:\n";
       if (summaryOptions.includes('summary')) prompt += "- Summary\n";
       if (summaryOptions.includes('main-points')) prompt += "- Main Points\n";
       if (summaryOptions.includes('action-items')) prompt += "- Action Items\n";
