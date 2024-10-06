@@ -1,7 +1,7 @@
 # Audio To Notion 🎙️📝
 
 ## Overview
-
+![image](https://github.com/user-attachments/assets/ff5e5705-a2f3-4fb1-b30f-bffce500ce78)
 Audio To Notion is a powerful web application that transforms your audio recordings into structured Notion pages. It's designed to streamline the process of converting spoken content into organized, written notes.
 
 ## Current Features
@@ -17,6 +17,7 @@ Audio To Notion is a powerful web application that transforms your audio recordi
 - **Notion Import Guide**: Step-by-step instructions for manually importing the summary into Notion.
 
 ## How It Works
+
 
 1. Upload your audio file.
 2. Select your desired summary options.
