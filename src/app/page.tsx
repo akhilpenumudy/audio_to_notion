@@ -247,7 +247,7 @@ export default function Home() {
               </div>
               {isSummaryExpanded ? (
                 <div className="bg-gray-50 p-4 rounded-md">
-                  <pre className="whitespace-pre-wrap text-gray-700">
+                  <pre className="whitespace-pre-wrap text-grey-700">
                     {summary}
                   </pre>
                 </div>
