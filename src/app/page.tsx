@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   Link,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +23,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [detailedError, setDetailedError] = useState<any>(null);
   const [summaryOptions, setSummaryOptions] = useState<string[]>([]);
-  const [isSummaryExpanded, setIsSummaryExpanded] = useState(true);
-  const [isNotionConnected, setIsNotionConnected] = useState(false);
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
+  const [isNotionGuideExpanded, setIsNotionGuideExpanded] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -47,7 +48,6 @@ export default function Home() {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("summaryOptions", JSON.stringify(summaryOptions));
-      formData.append("isNotionConnected", String(isNotionConnected));
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
@@ -62,6 +62,7 @@ export default function Home() {
       }
 
       setSummary(result.summary);
+      setIsSummaryExpanded(false);
     } catch (error) {
       console.error("Error processing audio:", error);
       if (error instanceof Error) {
@@ -94,24 +95,15 @@ export default function Home() {
     setIsSummaryExpanded(!isSummaryExpanded);
   };
 
-  const handleNotionConnect = async () => {
-    // This is a placeholder for the actual Notion connection logic
-    // You would typically redirect to Notion's OAuth flow here
-    try {
-      // Simulating an API call to connect to Notion
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setIsNotionConnected(true);
-    } catch (error) {
-      console.error("Error connecting to Notion:", error);
-      setError("Failed to connect to Notion");
-    }
+  const toggleNotionGuide = () => {
+    setIsNotionGuideExpanded(!isNotionGuideExpanded);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl text-center font-bold text-gray-900">
             Audio to Notion 🔊 → 📝
           </h1>
         </div>
@@ -119,31 +111,6 @@ export default function Home() {
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white shadow-md rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Connect to Notion
-              </label>
-              <div className="flex items-center space-x-2">
-                <Button
-                  type="button"
-                  onClick={handleNotionConnect}
-                  disabled={isNotionConnected}
-                  className="w-full"
-                >
-                  <Link className="mr-2 h-4 w-4" />
-                  {isNotionConnected
-                    ? "Connected to Notion"
-                    : "Connect to Notion"}
-                </Button>
-              </div>
-              {isNotionConnected && (
-                <p className="text-sm text-green-600">
-                  Your Notion account is connected. Summaries will be sent to
-                  your Notion.
-                </p>
-              )}
-            </div>
-
             <div className="space-y-2">
               <label
                 htmlFor="audio-upload"
@@ -175,7 +142,7 @@ export default function Home() {
                 <ToggleGroupItem
                   value="summary"
                   aria-label="Toggle summary"
-                  className="data-[state=on]:bg-blue-500 data-[state=on]:text-white"
+                  className="data-[state=on]:bg-blue-500 data-[state=on]:text-white "
                 >
                   Summary
                 </ToggleGroupItem>
@@ -261,33 +228,81 @@ export default function Home() {
         </div>
 
         {summary && (
-          <div className="mt-8 bg-white shadow-md rounded-lg p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Summary</h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleSummary}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                {isSummaryExpanded ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+          <div className="mt-8 space-y-4">
+            <div className="bg-white shadow-md rounded-lg p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900">Summary</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleSummary}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  {isSummaryExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              {isSummaryExpanded ? (
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <pre className="whitespace-pre-wrap text-gray-700">
+                    {summary}
+                  </pre>
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">Click to expand summary</p>
+              )}
+              <Button className="w-full" onClick={handleDownload}>
+                <FileText className="mr-2 h-4 w-4" />
+                Download Markdown Summary
               </Button>
             </div>
-            {isSummaryExpanded && (
-              <div className="bg-gray-50 p-4 rounded-md">
-                <pre className="whitespace-pre-wrap text-gray-700">
-                  {summary}
-                </pre>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div
+                className="flex justify-between items-center cursor-pointer"
+                onClick={toggleNotionGuide}
+              >
+                <div className="flex items-center">
+                  <Info className="h-5 w-5 text-blue-500 mr-2" />
+                  <h3 className="text-lg font-semibold text-blue-700">
+                    How to import into Notion
+                  </h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  {isNotionGuideExpanded ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-            )}
-            <Button className="w-full" onClick={handleDownload}>
-              <FileText className="mr-2 h-4 w-4" />
-              Download Markdown Summary
-            </Button>
+              {isNotionGuideExpanded && (
+                <div className="mt-2 text-blue-700">
+                  <ol className="list-decimal list-inside space-y-2">
+                    <li>
+                      Download the Markdown summary using the button above.
+                    </li>
+                    <li>
+                      Open your Notion workspace and navigate to the desired
+                      page.
+                    </li>
+                    <li>Click the "···" button in the top right corner.</li>
+                    <li>Select "Import" from the menu.</li>
+                    <li>Choose the downloaded Markdown file.</li>
+                    <li>
+                      Notion will import the content, preserving the formatting.
+                    </li>
+                  </ol>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
