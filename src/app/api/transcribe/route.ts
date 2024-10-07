@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { put } from '@vercel/blob';
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,12 +23,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'API key not found' }, { status: 500 });
     }
 
-    // Upload file to Vercel Blob
-    const blob = await put(file.name, file, {
-      access: 'public',
-    });
-
-    console.log('File uploaded to Vercel Blob:', blob.url);
+    // Convert File to base64
+    const arrayBuffer = await file.arrayBuffer();
+    const base64String = Buffer.from(arrayBuffer).toString('base64');
 
     // Initialize Gemini API
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -53,7 +49,7 @@ export async function POST(req: NextRequest) {
       prompt,
       {
         inlineData: {
-          data: blob.url,
+          data: base64String,
           mimeType: file.type
         }
       }
@@ -64,9 +60,22 @@ export async function POST(req: NextRequest) {
     const markdown = response.text();
 
     console.log('Sending response back to client');
-    return NextResponse.json({ summary: markdown, blobUrl: blob.url });
+    return NextResponse.json({ summary: markdown });
   } catch (error) {
-    console.error('Error processing POST request:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('Detailed error:', error);
+    if (error instanceof Error) {
+      return NextResponse.json({ 
+        error: 'An error occurred while processing the audio',
+        details: {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        }
+      }, { status: 500 });
+    }
+    return NextResponse.json({ 
+      error: 'An unknown error occurred while processing the audio',
+      details: String(error)
+    }, { status: 500 });
   }
 }
