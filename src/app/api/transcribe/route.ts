@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Prepare the prompt based on selected options
-    let prompt = "Transcribe this audio and provide a summary of its content in Markdown format. Make sure that if the audio contains any type of math formula, that it is properly formatted with LaTeX within the markdown. ";
+    let prompt = "Transcribe this audio and provide a summary of its content in Markdown format. Make sure that if the audio contains any type of math formula, that it is properly formatted with KaTeX within the markdown. ";
     if (summaryOptions.length === 0) {
       prompt += "Only generate a title for the note.";
     } else {
